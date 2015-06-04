@@ -63,9 +63,7 @@ class CronJobManager(object):
     proper logger in cases of job failure.
     """
 
-    def __init__(self, cron_job_class, silent=False, *args, **kwargs):
-        super(CronJobManager, self).__init__(*args, **kwargs)
-
+    def __init__(self, cron_job_class, silent=False):
         self.cron_job_class = cron_job_class
         self.silent = silent
         self.lock_class = self.get_lock_class()
