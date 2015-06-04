@@ -6,25 +6,12 @@ import warnings
 from django_cron.models import CronJobLog
 from django.conf import settings
 from django.utils import timezone
+from django.utils.module_loading import import_string
 from django.db.models import Q
 
 
 DEFAULT_LOCK_BACKEND = 'django_cron.backends.lock.cache.CacheLock'
 logger = logging.getLogger('django_cron')
-
-
-def get_class(kls):
-    """
-    TODO: move to django-common app.
-    Converts a string to a class.
-    Courtesy: http://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname/452981#452981
-    """
-    parts = kls.split('.')
-    module = ".".join(parts[:-1])
-    m = __import__(module)
-    for comp in parts[1:]:
-        m = getattr(m, comp)
-    return m
 
 
 class Schedule(object):
@@ -197,9 +184,9 @@ class CronJobManager(object):
     def get_lock_class(self):
         name = getattr(settings, 'DJANGO_CRON_LOCK_BACKEND', DEFAULT_LOCK_BACKEND)
         try:
-            return get_class(name)
-        except Exception as err:
-            raise Exception("invalid lock module %s. Can't use it: %s." % (name, err))
+            return import_string(name)
+        except ImportError as err:
+            raise ImportError("invalid lock module %s. Can't use it: %s." % (name, err))
 
     @property
     def msg(self):

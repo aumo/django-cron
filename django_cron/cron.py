@@ -1,5 +1,6 @@
 from django.conf import settings
-from django_cron import CronJobBase, Schedule, get_class
+from django.utils.module_loading import import_string
+from django_cron import CronJobBase, Schedule
 from django_cron.models import CronJobLog
 
 from django_common.helper import send_mail
@@ -16,7 +17,7 @@ class FailedRunsNotificationCronJob(CronJobBase):
 
     def do(self):
 
-        CRONS_TO_CHECK = map(lambda x: get_class(x), settings.CRON_CLASSES)
+        CRONS_TO_CHECK = map(lambda x: import_string(x), settings.CRON_CLASSES)
         EMAILS = [admin[1] for admin in settings.ADMINS]
 
         try:
