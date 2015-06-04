@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, time, timedelta
 import traceback
+import warnings
 
 from django_cron.models import CronJobLog
 from django.conf import settings
@@ -47,10 +48,12 @@ class CronJobBase(object):
     def __init__(self):
         self.prev_success_cron = None
 
-    def set_prev_success_cron(self, prev_success_cron):
-        self.prev_success_cron = prev_success_cron
-
     def get_prev_success_cron(self):
+        warnings.warn(
+            'CronJobBase.get_prev_success_cron() will soon be '
+            'removed, use CronJobBase.prev_success_cron instead.',
+            PendingDeprecationWarning
+        )
         return self.prev_success_cron
 
 
@@ -189,7 +192,7 @@ class CronJobManager(object):
                 logger.debug("Running cron: %s code %s", cron_job_class.__name__, self.cron_job.code)
                 self.msg = self.cron_job.do()
                 self.make_log(self.msg, is_success=True)
-                self.cron_job.set_prev_success_cron(self.last_successfully_ran_cron)
+                self.cron_job.prev_success_cron = self.last_successfully_ran_cron
 
     def get_lock_class(self):
         name = getattr(settings, 'DJANGO_CRON_LOCK_BACKEND', DEFAULT_LOCK_BACKEND)
