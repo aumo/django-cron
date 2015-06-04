@@ -114,13 +114,16 @@ class CronJobBase(object):
 
         return False
 
-    def clean_cron_log_message(self):
-        if self.cron_log.message is None:
-            self.cron_log.message = ''
-
+    def clean_cron_log_message(self, message):
+        '''
+        Hook that allow subclasses to modify the cron
+        log message.
+        The default behaviour is to cut it at 1000 chars.
+        '''
         MESSAGE_MAX_LENGTH = 1000
-        if len(self.cron_log.message) > MESSAGE_MAX_LENGTH:
-            self.cron_log.message = self.cron_log.message[-MESSAGE_MAX_LENGTH:]
+        if len(message) > MESSAGE_MAX_LENGTH:
+            message = message[-MESSAGE_MAX_LENGTH:]
+        return message
 
     def run(self, force=False, silent=False):
         """
@@ -132,13 +135,13 @@ class CronJobBase(object):
                     logger.debug("Running cron: %s code %s", self.__class__.__name__, self.code)
 
                     try:
-                        self.cron_log.message = self.do()
+                        message = self.do() or ''
                         self.cron_log.is_success = True
                     except:
-                        self.cron_log.message = traceback.format_exc()
+                        message = traceback.format_exc()
                         self.cron_log.is_success = False
 
-                    self.clean_cron_log_message()
+                    self.cron_log.message = self.clean_cron_log_message(message)
                     self.cron_log.end_time = timezone.now()
                     self.cron_log.save()
         except self.lock_class.LockFailedException as e:
