@@ -72,10 +72,10 @@ class CronJobManager(object):
         self.last_successfully_ran_cron = None
 
     def should_run_now(self, force=False):
-        cron_job = self.cron_job
         """
         Returns a boolean determining whether this cron should run now or not!
         """
+        cron_job = self.cron_job
 
         # If we pass --force options, we force cron run
         if force:
@@ -88,12 +88,11 @@ class CronJobManager(object):
                 last_job = CronJobLog.objects.filter(code=cron_job.code).latest('start_time')
             except CronJobLog.DoesNotExist:
                 pass
-            if last_job:
-                if not last_job.is_success and cron_job.schedule.retry_after_failure_mins:
-                    if timezone.now() > last_job.start_time + timedelta(minutes=cron_job.schedule.retry_after_failure_mins):
-                        return True
-                    else:
-                        return False
+            if last_job \
+               and not last_job.is_success \
+               and cron_job.schedule.retry_after_failure_mins:
+                next_retry_time = last_job.start_time + timedelta(minutes=cron_job.schedule.retry_after_failure_mins)
+                return timezone.now() > next_retry_time
 
             try:
                 self.last_successfully_ran_cron = CronJobLog.objects.filter(
@@ -105,8 +104,9 @@ class CronJobManager(object):
                 pass
 
             if self.last_successfully_ran_cron:
-                if timezone.now() > self.last_successfully_ran_cron.start_time + timedelta(minutes=cron_job.schedule.run_every_mins):
-                    return True
+                next_run_time = self.last_successfully_ran_cron.start_time \
+                    + timedelta(minutes=cron_job.schedule.run_every_mins)
+                return timezone.now() > next_run_time
             else:
                 return True
 
