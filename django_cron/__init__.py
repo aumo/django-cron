@@ -60,14 +60,11 @@ class CronJobBase(object):
     def do(self):
         raise NotImplementedError('All subclasses of CronJobBase must implement a do method.')
 
-    def should_run_now(self, force=False):
+    def should_run_now(self):
         """
         Returns a boolean determining whether this cron should run now or not!
         Side-effect: will set self.last_successfully_ran_cron (for run_at_times only)
         """
-        # If we pass --force options, we force cron run
-        if force:
-            return True
         if self.schedule.run_every_mins is not None:
 
             # We check last job - success or not
@@ -131,7 +128,7 @@ class CronJobBase(object):
         """
         try:
             with self.lock_class(self.__class__, silent):
-                if self.should_run_now(force):
+                if force or self.should_run_now(force):
                     logger.debug("Running cron: %s code %s", self.__class__.__name__, self.code)
 
                     try:
