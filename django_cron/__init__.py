@@ -14,6 +14,9 @@ __all__ = ['CronJobBase', 'Schedule', 'BaseSchedule', 'RunAtTimes',
            'RunEveryMinutes', ]
 
 
+default_app_config = 'django_cron.apps.AppConfig'
+
+
 DEFAULT_LOCK_BACKEND = 'django_cron.backends.lock.cache.CacheLock'
 logger = logging.getLogger('django_cron')
 
@@ -50,9 +53,6 @@ class CronJobBase(object):
             PendingDeprecationWarning
         )
         return self.last_successful_job
-
-    def do(self):
-        raise NotImplementedError('All subclasses of CronJobBase must implement a do method.')
 
     def clean_cron_log_message(self, message):
         '''
