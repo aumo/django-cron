@@ -52,9 +52,8 @@ class CronJobManager(object):
     proper logger in cases of job failure.
     """
 
-    def __init__(self, cron_job_class, silent=False):
+    def __init__(self, cron_job_class):
         self.cron_job_class = cron_job_class
-        self.silent = silent
         self.lock_class = self.get_lock_class()
         self.last_successfully_ran_cron = None
         self.message = None
@@ -62,6 +61,7 @@ class CronJobManager(object):
     def should_run_now(self, force=False):
         """
         Returns a boolean determining whether this cron should run now or not!
+        Side-effect: will set self.last_successfully_ran_cron (for run_at_times only)
         """
         cron_job = self.cron_job
 
@@ -125,50 +125,38 @@ class CronJobManager(object):
         if len(self.cron_log.message) > MESSAGE_MAX_LENGTH:
             self.cron_log.message = self.cron_log.message[-MESSAGE_MAX_LENGTH:]
 
-    def __enter__(self):
+    def run(self, force=False, silent=False):
+        """
+        apply the logic of the schedule and call do() on the CronJobBase class
+        """
         self.cron_log = CronJobLog(
             start_time=timezone.now(),
             code=self.cron_job_class.code
         )
-        return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
-        if ex_type == self.lock_class.LockFailedException:
-            if not self.silent:
-                logger.info(ex_value)
-                return True
-
-        if ex_type is not None:
-            self.cron_log.message = ''.join(traceback.format_exception(
-                ex_type, ex_value, ex_traceback))
-            self.cron_log.is_success = False
-        else:
-            self.cron_log.is_success = True
-
-        self.clean_cron_log_message()
-
-        if self._run_job:
-            self.cron_log.end_time = timezone.now()
-            self.cron_log.save()
-
-        return True  # prevent exception propagation
-
-    def run(self, force=False):
-        """
-        apply the logic of the schedule and call do() on the CronJobBase class
-        """
         cron_job_class = self.cron_job_class
-        if not issubclass(cron_job_class, CronJobBase):
-            raise Exception('The cron_job to be run must be a subclass of %s' % CronJobBase.__name__)
 
-        with self.lock_class(cron_job_class, self.silent):
-            self.cron_job = cron_job_class()
+        try:
+            with self.lock_class(cron_job_class, silent):
+                self.cron_job = cron_job_class()
 
-            self._run_job = self.should_run_now(force)
-            if self._run_job:
-                logger.debug("Running cron: %s code %s", cron_job_class.__name__, self.cron_job.code)
-                self.cron_job.prev_success_cron = self.last_successfully_ran_cron
-                self.cron_log.message = self.cron_job.do()
+                if self.should_run_now(force):
+                    logger.debug("Running cron: %s code %s", cron_job_class.__name__, self.cron_job.code)
+                    self.cron_job.prev_success_cron = self.last_successfully_ran_cron
+
+                    try:
+                        self.cron_log.message = self.cron_job.do()
+                        self.cron_log.is_success = True
+                    except:
+                        self.cron_log.message = traceback.format_exc()
+                        self.cron_log.is_success = False
+
+                    self.clean_cron_log_message()
+                    self.cron_log.end_time = timezone.now()
+                    self.cron_log.save()
+        except self.lock_class.LockFailedException as e:
+            if not silent:
+                logger.info(e)
 
     def get_lock_class(self):
         name = getattr(settings, 'DJANGO_CRON_LOCK_BACKEND', DEFAULT_LOCK_BACKEND)

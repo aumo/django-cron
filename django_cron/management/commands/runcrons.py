@@ -38,22 +38,5 @@ class Command(BaseCommand):
             return
 
         for cron_class in crons_to_run:
-            run_cron_with_cache_check(
-                cron_class,
-                force=options['force'],
-                silent=options['silent']
-            )
+            CronJobManager(cron_class).run(options['force'], options['silent'])
         close_connection()
-
-
-def run_cron_with_cache_check(cron_class, force=False, silent=False):
-    """
-    Checks the cache and runs the cron or not.
-
-    @cron_class - cron class to run.
-    @force      - run job even if not scheduled
-    @silent     - suppress notifications
-    """
-
-    with CronJobManager(cron_class, silent) as manager:
-        manager.run(force)
