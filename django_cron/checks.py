@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from django.conf import settings
-from django.core.checks import Error, register
+from django.core.checks import Error
 from django.utils.module_loading import import_string
 from django.utils.six import string_types
 

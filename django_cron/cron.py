@@ -1,37 +1,33 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django_cron import CronJobBase, Schedule
+from django_cron import CronJobBase, RunEveryMinutes
 from django_cron.models import CronJobLog
+from django_cron.settings import setting
 
 from django_common.helper import send_mail
 
 
+DEFAULT_MIN_NUM_FAILURES = 10
+
+
 class FailedRunsNotificationCronJob(CronJobBase):
     """
-        Send email if cron failed to run X times in a row
+    Send email if cron failed to run X times in a row
     """
     RUN_EVERY_MINS = 30
 
-    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    schedule = RunEveryMinutes(minutes=RUN_EVERY_MINS)
     code = 'django_cron.FailedRunsNotificationCronJob'
 
     def do(self):
 
         CRONS_TO_CHECK = map(lambda x: import_string(x), settings.CRON_CLASSES)
         EMAILS = [admin[1] for admin in settings.ADMINS]
-
-        try:
-            FAILED_RUNS_CRONJOB_EMAIL_PREFIX = settings.FAILED_RUNS_CRONJOB_EMAIL_PREFIX
-        except:
-            FAILED_RUNS_CRONJOB_EMAIL_PREFIX = ''
+        FAILED_RUNS_CRONJOB_EMAIL_PREFIX = setting('EMAIL_PREFIX')
 
         for cron in CRONS_TO_CHECK:
-
-            try:
-                min_failures = cron.MIN_NUM_FAILURES
-            except AttributeError:
-                min_failures = 10
-
+            min_failures = getattr(cron, 'MIN_NUM_FAILURES',
+                                   DEFAULT_MIN_NUM_FAILURES)
             failures = 0
 
             jobs = CronJobLog.objects.filter(code=cron.code).order_by('-end_time')[:min_failures]
