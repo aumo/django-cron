@@ -1,7 +1,6 @@
 import logging
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 import traceback
-import time
 
 from django_cron.models import CronJobLog
 from django.conf import settings
@@ -113,16 +112,16 @@ class CronJobManager(object):
 
         if cron_job.schedule.run_at_times:
             for time_data in cron_job.schedule.run_at_times:
-                user_time = time.strptime(time_data, "%H:%M")
+                user_time = datetime.strptime(time_data, "%H:%M").time()
                 now = timezone.now()
-                actual_time = time.strptime("%s:%s" % (now.hour, now.minute), "%H:%M")
+                actual_time = now.time()
                 if actual_time >= user_time:
                     qset = CronJobLog.objects.filter(
                         code=cron_job.code,
                         ran_at_time=time_data,
                         is_success=True
                     ).filter(
-                        Q(start_time__gt=now) | Q(end_time__gte=now.replace(hour=0, minute=0, second=0, microsecond=0))
+                        Q(start_time__gt=now) | Q(end_time__gte=datetime.combine(now.date(), time.min))
                     )
                     if not qset:
                         self.user_time = time_data
