@@ -74,9 +74,6 @@ class CronJobManager(object):
         Returns a boolean determining whether this cron should run now or not!
         """
 
-        self.scheduled_time = None
-        self.last_successfully_ran_cron = None
-
         # If we pass --force options, we force cron run
         if force:
             return True
@@ -111,20 +108,20 @@ class CronJobManager(object):
                 return True
 
         if cron_job.schedule.run_at_times:
-            for time_data in cron_job.schedule.run_at_times:
-                scheduled_time = datetime.strptime(time_data, "%H:%M").time()
+            for scheduled_time in cron_job.schedule.run_at_times:
+                scheduled_time = datetime.strptime(scheduled_time, "%H:%M").time()
                 now = timezone.now()
                 actual_time = now.time()
                 if actual_time >= scheduled_time:
-                    qset = CronJobLog.objects.filter(
+                    similar_crons_that_ran_today = CronJobLog.objects.filter(
                         code=cron_job.code,
-                        ran_at_time=time_data,
+                        ran_at_time=scheduled_time,
                         is_success=True
                     ).filter(
                         Q(start_time__gt=now) | Q(end_time__gte=datetime.combine(now.date(), time.min))
                     )
-                    if not qset:
-                        self.scheduled_time = time_data
+                    if not similar_crons_that_ran_today.exists():
+                        self.cron_log.ran_at_time = scheduled_time
                         return True
 
         return False
@@ -137,7 +134,6 @@ class CronJobManager(object):
 
         cron_log.is_success = kwargs.get('success', True)
         cron_log.message = self.make_log_msg(*messages)
-        cron_log.ran_at_time = getattr(self, 'scheduled_time', None)
         cron_log.end_time = timezone.now()
         cron_log.save()
 
