@@ -126,13 +126,10 @@ class CronJobManager(object):
 
         return False
 
-    def make_log(self, *messages, **kwargs):
+    def make_log(self, is_success, *messages):
         cron_log = self.cron_log
 
-        cron_job = getattr(self, 'cron_job', self.cron_job_class)
-        cron_log.code = cron_job.code
-
-        cron_log.is_success = kwargs.get('success', True)
+        cron_log.is_success = is_success
         cron_log.message = self.make_log_msg(*messages)
         cron_log.end_time = timezone.now()
         cron_log.save()
@@ -156,8 +153,10 @@ class CronJobManager(object):
                 return self.make_log_msg(msg)
 
     def __enter__(self):
-        self.cron_log = CronJobLog(start_time=timezone.now())
-
+        self.cron_log = CronJobLog(
+            start_time=timezone.now(),
+            code=self.cron_job_class.code
+        )
         return self
 
     def __exit__(self, ex_type, ex_value, ex_traceback):
@@ -168,7 +167,7 @@ class CronJobManager(object):
         elif ex_type is not None:
             try:
                 trace = "".join(traceback.format_exception(ex_type, ex_value, ex_traceback))
-                self.make_log(self.msg, trace, success=False)
+                self.make_log(self.msg, trace, is_success=False)
             except Exception as e:
                 err_msg = "Error saving cronjob log message: %s" % e
                 logger.error(err_msg)
@@ -189,7 +188,7 @@ class CronJobManager(object):
             if self.should_run_now(force):
                 logger.debug("Running cron: %s code %s", cron_job_class.__name__, self.cron_job.code)
                 self.msg = self.cron_job.do()
-                self.make_log(self.msg, success=True)
+                self.make_log(self.msg, is_success=True)
                 self.cron_job.set_prev_success_cron(self.last_successfully_ran_cron)
 
     def get_lock_class(self):
