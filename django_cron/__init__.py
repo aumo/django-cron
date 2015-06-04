@@ -31,12 +31,16 @@ def get_lock_class():
 
 class CronJobBase(object):
     """
+    Base class for defining jobs run by django_cron.
+
     Sub-classes should have the following properties:
-    + code - This should be a code specific to the cron being run. Eg. 'general.stats' etc.
-    + schedule
+    + code - This should be a code specific to the cron being run.
+      Eg. 'general.stats' etc.
+    + schedule - a subclass of django_cron.schedules.BaseSchedule
+      that defines when to run the job.
 
     Following methods:
-    + do - This is the actual business logic to be run at the given schedule
+    + do - This is the actual business logic to be run at the given schedule.
     """
     lock_class = get_lock_class()
 
@@ -67,6 +71,12 @@ class CronJobBase(object):
 
     @cached_property
     def last_job(self):
+        '''
+        Returns the CronJobLog of the last job sharing
+        this CronJobBase's code.
+        This property is cached so multiple calls won't
+        run multiple database queries.
+        '''
         try:
             return CronJobLog.objects \
                              .filter(code=self.code) \
@@ -76,6 +86,12 @@ class CronJobBase(object):
 
     @cached_property
     def last_successful_job(self):
+        '''
+        Returns the CronJobLog of the last successful job sharing
+        this CronJobBase's code.
+        This property is cached so multiple calls won't
+        run multiple database queries.
+        '''
         try:
             return CronJobLog.objects.filter(
                 code=self.code,

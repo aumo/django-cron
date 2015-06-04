@@ -8,17 +8,19 @@ from django_cron.models import CronJobLog
 
 
 class BaseSchedule(object):
-    def should_run_now(self):
-        raise NotImplementedError(
-            'BaseSchedule subclasses should implement a should_run_now method, '
-            'the should_run_now takes a CronJobBase instance as its first argument.'
-        )
+    '''
+    Base class for Schedules.
+    Does nothing at the moment, keep it in case
+    it needs to in the future.
+    '''
+    pass
 
 
 class RunEveryMinutes(BaseSchedule):
     '''
-    Schedule that allows a job to run at an interval
-    given in minutes via the minutes parameter.
+    Schedule class that allows a job to be run every X minutes.
+    :param minutes: the interval in minutes between each run.
+    :param retry_after_failure_mins: the interval before retrying a failed run.
     '''
     def __init__(self, minutes, retry_after_failure_mins=None):
         self.minutes = minutes
@@ -41,6 +43,12 @@ class RunEveryMinutes(BaseSchedule):
 
 
 class RunAtTimes(BaseSchedule):
+    '''
+    Schedule class that allows running a job at
+    specific times each day.
+    :param times: a list of strings representing the
+    times the job must be run at, ex: `['10:00', '18:00']`
+    '''
     def __init__(self, times):
         # Parse the times.
         self.times = [datetime.strptime(t, "%H:%M").time() for t in times]
