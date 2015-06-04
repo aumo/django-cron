@@ -5,7 +5,7 @@ import warnings
 from django_cron.helpers import cached_property
 from django_cron.models import CronJobLog
 from django_cron.schedules import BaseSchedule, Schedule
-from django.conf import settings
+from django_cron.settings import setting
 from django.utils import timezone
 from django.utils.module_loading import import_string
 
@@ -17,16 +17,15 @@ __all__ = ['CronJobBase', 'Schedule', 'BaseSchedule', 'RunAtTimes',
 default_app_config = 'django_cron.apps.AppConfig'
 
 
-DEFAULT_LOCK_BACKEND = 'django_cron.backends.lock.cache.CacheLock'
 logger = logging.getLogger('django_cron')
 
 
 def get_lock_class():
-    name = getattr(settings, 'DJANGO_CRON_LOCK_BACKEND', DEFAULT_LOCK_BACKEND)
+    name = setting('LOCK_BACKEND')
     try:
         return import_string(name)
-    except ImportError as err:
-        raise ImportError("invalid lock module %s. Can't use it: %s." % (name, err))
+    except ImportError:
+        raise ImportError("Invalid lock module, cannot import %s" % name)
 
 
 class CronJobBase(object):

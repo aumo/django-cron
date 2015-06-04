@@ -1,7 +1,6 @@
 from django_cron.backends.lock.base import DjangoCronJobLock
-from django.conf import settings
+from django_cron.settings import setting
 
-import warnings
 
 try:
     from django.core.cache import caches
@@ -21,8 +20,6 @@ class CacheLock(DjangoCronJobLock):
     One of simplest lock backends, uses django cache to
     prevent parallel runs of commands.
     """
-    DEFAULT_LOCK_TIME = 24 * 60 * 60  # 24 hours
-
     def __init__(self, cron_class, *args, **kwargs):
         super(CacheLock, self).__init__(cron_class, *args, **kwargs)
 
@@ -59,11 +56,7 @@ class CacheLock(DjangoCronJobLock):
         """
         Gets a specified cache (or the `default` cache if CRON_CACHE is not set)
         """
-        cache_name = 'default'
-        if hasattr(settings, 'CRON_CACHE'):
-            warnings.warn("CRON_CACHE config variable was renamed into DJANGO_CRON_CACHE.", DeprecationWarning)
-            cache_name = settings.CRON_CACHE
-        cache_name = getattr(settings, 'DJANGO_CRON_CACHE', cache_name)
+        cache_name = setting('CACHE')
 
         # Allow the possible InvalidCacheBackendError to happen here
         # instead of allowing unexpected parallel runs of cron jobs
@@ -78,12 +71,7 @@ class CacheLock(DjangoCronJobLock):
         return self.job_name
 
     def get_cache_timeout(self, cron_class):
-        timeout = self.DEFAULT_LOCK_TIME
-        try:
-            timeout = getattr(cron_class, 'DJANGO_CRON_LOCK_TIME', settings.DJANGO_CRON_LOCK_TIME)
-        except:
-            pass
-        return timeout
+        return setting('LOCK_TIME')
 
     def get_running_lock_date(self):
         date = self.cache.get(self.lock_name)

@@ -1,6 +1,6 @@
 from django_cron.backends.lock.base import DjangoCronJobLock
+from django_cron.settings import setting
 
-from django.conf import settings
 from django.core.files import locks
 import os
 import sys
@@ -57,8 +57,7 @@ class FileLock(DjangoCronJobLock):
         f.close()
 
     def get_lock_name(self):
-        default_path = '/tmp'
-        path = getattr(settings, 'DJANGO_CRON_LOCKFILE_PATH', default_path)
+        path = setting('LOCKFILE_PATH')
         if not os.path.isdir(path):
             # let it die if failed, can't run further anyway
             os.makedirs(path)
