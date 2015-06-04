@@ -4,7 +4,6 @@ import traceback
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django_cron import CronJobManager
 try:
     from django.db import close_old_connections as close_connection
 except ImportError:
@@ -38,5 +37,5 @@ class Command(BaseCommand):
             return
 
         for cron_class in crons_to_run:
-            CronJobManager(cron_class).run(options['force'], options['silent'])
+            cron_class().run(options['force'], options['silent'])
         close_connection()
