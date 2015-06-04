@@ -4,10 +4,7 @@ import traceback
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.utils.module_loading import import_string
-try:
-    from django.db import close_old_connections as close_connection
-except ImportError:
-    from django.db import close_connection
+from django.db import close_old_connections
 
 
 DEFAULT_LOCK_TIME = 24 * 60 * 60  # 24 hours
@@ -38,4 +35,5 @@ class Command(BaseCommand):
 
         for cron_class in crons_to_run:
             cron_class().run(options['force'], options['silent'])
-        close_connection()
+
+        close_old_connections()
