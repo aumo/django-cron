@@ -1,7 +1,6 @@
 from datetime import datetime, time, timedelta
 import warnings
 
-from django.db.models import Q
 from django.utils import timezone
 
 from django_cron.models import CronJobLog
@@ -62,9 +61,8 @@ class RunAtTimes(BaseSchedule):
                     code=cron_job.code,
                     ran_at_time=scheduled_time,
                     is_success=True
-                ).filter(
-                    Q(start_time__gt=now) | Q(end_time__gte=datetime.combine(now.date(), time.min))
-                )
+                ).filter(end_time__gte=datetime.combine(now.date(), time.min))
+
                 if not similar_crons_that_ran_today.exists():
                     cron_job.cron_log.ran_at_time = scheduled_time
                     return True
