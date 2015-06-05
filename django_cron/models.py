@@ -11,12 +11,6 @@ class CronJobLog(models.Model):
     is_success = models.BooleanField(default=False)
     message = models.TextField(max_length=1000, blank=True)  # TODO: db_index=True
 
-    """
-    This field is used to mark jobs executed in exact time.
-    Jobs that run every X minutes, have this field empty.
-    """
-    ran_at_time = models.TimeField(null=True, blank=True, db_index=True, editable=False)
-
     # This field is provided so the schedule can store information
     # on cron job logs specific to their implementations.
     # For example, RunAtTimes needs to store the time the job ran.
@@ -27,7 +21,7 @@ class CronJobLog(models.Model):
 
     class Meta:
         index_together = [
-            ('code', 'is_success', 'ran_at_time'),
-            ('code', 'start_time', 'ran_at_time'),
+            ('code', 'is_success', 'schedule_extra'),
+            ('code', 'start_time', 'schedule_extra'),
             ('code', 'start_time')  # useful when finding latest run (order by start_time) of cron
         ]

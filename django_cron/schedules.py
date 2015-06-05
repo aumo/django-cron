@@ -63,12 +63,12 @@ class RunAtTimes(BaseSchedule):
             if actual_time >= scheduled_time:
                 similar_crons_that_ran_today = CronJobLog.objects.filter(
                     code=cron_job.code,
-                    ran_at_time=scheduled_time,
+                    schedule_extra=self.format_time(scheduled_time),
                     is_success=True
                 ).filter(end_time__gte=datetime.combine(now.date(), time.min))
 
                 if not similar_crons_that_ran_today.exists():
-                    cron_job.cron_log.ran_at_time = scheduled_time
+                    cron_job.cron_log.schedule_extra = self.format_time(scheduled_time)
                     return True
 
 

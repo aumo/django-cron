@@ -88,7 +88,6 @@ class CronJobBase(object):
             return CronJobLog.objects.filter(
                 code=self.code,
                 is_success=True,
-                ran_at_time__isnull=True
             ).latest('start_time')
         except CronJobLog.DoesNotExist:
             pass
