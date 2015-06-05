@@ -52,6 +52,10 @@ class RunAtTimes(BaseSchedule):
         # Parse the times.
         self.times = [datetime.strptime(t, "%H:%M").time() for t in times]
 
+    @staticmethod
+    def format_time(time):
+        return 'ran_at_{}_{}'.format(time.hour, time.minute)
+
     def should_run_now(self, cron_job):
         for scheduled_time in self.times:
             now = timezone.now()

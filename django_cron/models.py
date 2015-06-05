@@ -17,6 +17,11 @@ class CronJobLog(models.Model):
     """
     ran_at_time = models.TimeField(null=True, blank=True, db_index=True, editable=False)
 
+    # This field is provided so the schedule can store information
+    # on cron job logs specific to their implementations.
+    # For example, RunAtTimes needs to store the time the job ran.
+    schedule_extra = models.TextField(blank=True, editable=False)
+
     def __unicode__(self):
         return '%s (%s)' % (self.code, 'Success' if self.is_success else 'Fail')
 
