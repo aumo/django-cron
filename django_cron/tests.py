@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from django import db
 from django.utils import unittest
+from django.core import checks
 from django.core.management import call_command
 from django.test.utils import override_settings
 from django.test.client import Client
@@ -42,6 +43,14 @@ class TestCase(unittest.TestCase):
     wait_3sec_cron = 'test_crons.Wait3secCronJob'
     does_not_exist_cron = 'ThisCronObviouslyDoesntExist'
     test_failed_runs_notification_cron = 'django_cron.cron.FailedRunsNotificationCronJob'
+    test_does_not_subclass_cron = 'test_crons.DoesNotSubclassCronJobBase'
+    test_no_code_cron = 'test_crons.NoCodeCronJob'
+    test_code_no_string_cron = 'test_crons.CodeNotStringCronJob'
+    test_no_schedule_cron = 'test_crons.NoScheduleCronJob'
+    test_invalid_schedule_cron = 'test_crons.InvalidScheduleCronJob'
+    test_no_do_cron = 'test_crons.NoDoCronJob'
+    test_duplicate_code_cron_1 = 'test_crons.DuplicateCodeCronJob1'
+    test_duplicate_code_cron_2 = 'test_crons.DuplicateCodeCronJob2'
 
     def setUp(self):
         CronJobLog.objects.all().delete()
@@ -183,3 +192,28 @@ class TestCase(unittest.TestCase):
                 humanize_duration(duration),
                 humanized
             )
+
+    @override_settings(CRON_CLASSES=[
+        does_not_exist_cron,
+        test_does_not_subclass_cron,
+        test_no_code_cron,
+        test_code_no_string_cron,
+        test_no_schedule_cron,
+        test_invalid_schedule_cron,
+        test_no_do_cron,
+        test_duplicate_code_cron_1,
+        test_duplicate_code_cron_2,
+    ])
+    def test_system_checks(self):
+        issues = checks.run_checks()
+
+        issues_ids = [issue.id for issue in issues]
+
+        assert 'django_cron.E001' in issues_ids
+        assert 'django_cron.E002' in issues_ids
+        assert 'django_cron.E003' in issues_ids
+        assert 'django_cron.E004' in issues_ids
+        assert 'django_cron.E005' in issues_ids
+        assert 'django_cron.E006' in issues_ids
+        assert 'django_cron.E007' in issues_ids
+        assert 'django_cron.E008' in issues_ids

@@ -63,7 +63,7 @@ def check_cron(cron_class_string):
         ))
     else:
         schedule = getattr(cron_class, 'schedule', None)
-        should_run_now = getattr(schedule, 'should_run_now')
+        should_run_now = getattr(schedule, 'should_run_now', None)
         if not hasattr(should_run_now, '__call__'):
             errors.append(Error(
                 'Schedules must define a should_run_now method',
@@ -72,7 +72,7 @@ def check_cron(cron_class_string):
                 id='django_cron.E006'
             ))
 
-    do = getattr(cron_class, 'do')
+    do = getattr(cron_class, 'do', None)
     if not hasattr(do, '__call__'):
         errors.append(Error(
             'CronJobBase subclasses must define a do method',
@@ -95,14 +95,14 @@ def check_crons(app_configs, **kwargs):
             errors.extend(cron_errors)
 
     # Check for duplicate code:
-    for code, cron_classes in CRON_JOB_CODES:
+    for code, cron_classes in CRON_JOB_CODES.items():
         if len(cron_classes) > 1:
             errors.append(Error(
                 'CronJob codes must be unique',
                 hint='Those classes define the '
                 'same code({}): {}'.format(code, cron_classes),
                 obj=cron_class_string,
-                id='django_cron.E007'
+                id='django_cron.E008'
             ))
 
     return errors
