@@ -19,8 +19,8 @@ DEFAULTS = {
 def setting(name):
     if name == 'CACHE' and hasattr(settings, 'CRON_CACHE'):
         warnings.warn(
-            "CRON_CACHE setting was renamed '
-            'into DJANGO_CRON_CACHE.",
+            'CRON_CACHE setting was renamed '
+            'into DJANGO_CRON_CACHE.',
             DeprecationWarning
         )
         return settings.CRON_CACHE

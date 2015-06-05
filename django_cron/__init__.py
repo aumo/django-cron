@@ -4,7 +4,8 @@ import warnings
 
 from django_cron.helpers import cached_property
 from django_cron.models import CronJobLog
-from django_cron.schedules import BaseSchedule, Schedule
+from django_cron.schedules import (BaseSchedule, Schedule,
+                                   RunAtTimes, RunEveryMinutes)
 from django_cron.settings import setting
 from django.utils import timezone
 from django.utils.module_loading import import_string
