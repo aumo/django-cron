@@ -3,6 +3,7 @@ from time import sleep
 from datetime import timedelta
 
 from django import db
+from django.apps import apps
 from django.utils import unittest
 from django.core import checks
 from django.core.management import call_command
@@ -205,7 +206,8 @@ class TestCase(unittest.TestCase):
         test_duplicate_code_cron_2,
     ])
     def test_system_checks(self):
-        issues = checks.run_checks()
+        app_config = apps.get_app_config('django_cron')
+        issues = checks.run_checks(app_configs=[app_config])
 
         issues_ids = [issue.id for issue in issues]
 
