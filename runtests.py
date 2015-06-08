@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This file mainly exists to allow python setup.py test to work.
 # flake8: noqa
 import os
@@ -19,7 +21,12 @@ def runtests():
     test_runner = TestRunner(verbosity=1, interactive=False)
     if hasattr(django, 'setup'):
         django.setup()
-    failures = test_runner.run_tests(['django_cron'])
+
+    test_label = 'django_cron'
+    if sys.argv[0] != 'setup.py' and len(sys.argv) > 1:
+        test_label = '{}.tests.TestCase.{}'.format(test_label, sys.argv[1])
+
+    failures = test_runner.run_tests([test_label])
     sys.exit(bool(failures))
 
 
