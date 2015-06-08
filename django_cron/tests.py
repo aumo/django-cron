@@ -58,67 +58,59 @@ class TestCase(unittest.TestCase):
         CronJobLog.objects.all().delete()
 
     def test_success_cron(self):
-        logs_count = CronJobLog.objects.all().count()
         call_command('runcrons', self.success_cron, force=True)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
+        self.assertEqual(CronJobLog.objects.filter(is_success=True).count(), 1)
 
     def test_failed_cron(self):
-        logs_count = CronJobLog.objects.all().count()
         call_command('runcrons', self.error_cron, force=True)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
+        self.assertEqual(CronJobLog.objects.filter(is_success=False).count(), 1)
 
     def test_not_exists_cron(self):
-        logs_count = CronJobLog.objects.all().count()
         out_buffer = OutBuffer()
         call_command('runcrons', self.does_not_exist_cron, force=True, stdout=out_buffer)
 
         self.assertIn('Make sure these are valid cron class names', out_buffer.str_content())
         self.assertIn(self.does_not_exist_cron, out_buffer.str_content())
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count)
+        self.assertEqual(CronJobLog.objects.all().count(), 0)
 
     @override_settings(DJANGO_CRON_LOCK_BACKEND='django_cron.backends.lock.file.FileLock')
     def test_file_locking_backend(self):
-        logs_count = CronJobLog.objects.all().count()
         call_command('runcrons', self.success_cron, force=True)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
+        self.assertEqual(CronJobLog.objects.all().count(), 1)
 
     def test_runs_every_mins(self):
-        logs_count = CronJobLog.objects.all().count()
-
         with freeze_time("2014-01-01 00:00:00"):
             call_command('runcrons', self.five_mins_cron)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
+        self.assertEqual(CronJobLog.objects.all().count(), 1)
 
         with freeze_time("2014-01-01 00:04:59"):
             call_command('runcrons', self.five_mins_cron)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
+        self.assertEqual(CronJobLog.objects.all().count(), 1)
 
         with freeze_time("2014-01-01 00:05:01"):
             call_command('runcrons', self.five_mins_cron)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 2)
+        self.assertEqual(CronJobLog.objects.all().count(), 2)
 
     def test_runs_at_time(self):
-        logs_count = CronJobLog.objects.all().count()
-
         with freeze_time("2014-01-01 00:00:01"):
             call_command('runcrons', self.run_at_times_cron)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
+        self.assertEqual(CronJobLog.objects.all().count(), 1)
 
         with freeze_time("2014-01-01 00:04:50"):
             call_command('runcrons', self.run_at_times_cron)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
+        self.assertEqual(CronJobLog.objects.all().count(), 1)
 
         with freeze_time("2014-01-01 00:05:01"):
             call_command('runcrons', self.run_at_times_cron)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 2)
+        self.assertEqual(CronJobLog.objects.all().count(), 2)
 
         with freeze_time("2014-01-01 00:05:30"):
             call_command('runcrons', self.run_at_times_cron)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 2)
+        self.assertEqual(CronJobLog.objects.all().count(), 2)
 
         with freeze_time("2014-01-02 00:00:01"):
             call_command('runcrons', self.run_at_times_cron)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 3)
+        self.assertEqual(CronJobLog.objects.all().count(), 3)
 
     def test_admin(self):
         password = 'test'
@@ -149,15 +141,14 @@ class TestCase(unittest.TestCase):
         """
         with cache locking backend
         """
-        logs_count = CronJobLog.objects.all().count()
-        t = threading.Thread(target=self.run_cronjob_in_thread, args=(logs_count,))
+        t = threading.Thread(target=self.run_cronjob_in_thread, args=(0, ))
         t.daemon = True
         t.start()
         # this shouldn't get running
         sleep(0.1)  # to avoid race condition
         call_command('runcrons', self.wait_3sec_cron)
         t.join(10)
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
+        self.assertEqual(CronJobLog.objects.all().count(), 1)
 
     # TODO: this test doesn't pass - seems that second cronjob is locking file
     # however it should throw an exception that file is locked by other cronjob
@@ -180,14 +171,11 @@ class TestCase(unittest.TestCase):
     #     self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
 
     def test_failed_runs_notification(self):
-        CronJobLog.objects.all().delete()
-        logs_count = CronJobLog.objects.all().count()
-
         for i in range(10):
             call_command('runcrons', self.error_cron, force=True)
         call_command('runcrons', self.test_failed_runs_notification_cron)
 
-        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 11)
+        self.assertEqual(CronJobLog.objects.all().count(), 11)
 
     def test_humanize_duration(self):
         test_subjects = (
