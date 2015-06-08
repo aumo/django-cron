@@ -1,11 +1,11 @@
 from time import sleep
 
-from django_cron import CronJobBase, Schedule
+from django_cron import CronJobBase, Fixed, Periodic, Schedule
 
 
 class TestSucessCronJob(CronJobBase):
     code = 'test_success_cron_job'
-    schedule = Schedule(run_every_mins=0)
+    schedule = Periodic(minutes=0)
 
     def do(self):
         pass
@@ -13,7 +13,7 @@ class TestSucessCronJob(CronJobBase):
 
 class TestErrorCronJob(CronJobBase):
     code = 'test_error_cron_job'
-    schedule = Schedule(run_every_mins=0)
+    schedule = Periodic(minutes=0)
 
     def do(self):
         raise Exception()
@@ -21,7 +21,7 @@ class TestErrorCronJob(CronJobBase):
 
 class Test5minsCronJob(CronJobBase):
     code = 'test_run_every_mins'
-    schedule = Schedule(run_every_mins=5)
+    schedule = Periodic(minutes=5)
 
     def do(self):
         pass
@@ -29,7 +29,7 @@ class Test5minsCronJob(CronJobBase):
 
 class TestRunAtTimesCronJob(CronJobBase):
     code = 'test_run_at_times'
-    schedule = Schedule(run_at_times=['0:00', '0:05'])
+    schedule = Fixed(times=['0:00', '0:05'])
 
     def do(self):
         pass
@@ -37,7 +37,7 @@ class TestRunAtTimesCronJob(CronJobBase):
 
 class Wait3secCronJob(CronJobBase):
     code = 'test_wait_3_seconds'
-    schedule = Schedule(run_every_mins=5)
+    schedule = Periodic(minutes=5)
 
     def do(self):
         sleep(3)
@@ -45,14 +45,14 @@ class Wait3secCronJob(CronJobBase):
 
 class DoesNotSubclassCronJobBase(object):
     code = 'test_does_not_subclass'
-    schedule = Schedule(run_every_mins=5)
+    schedule = Periodic(minutes=5)
 
     def do(self):
         pass
 
 
 class NoCodeCronJob(CronJobBase):
-    schedule = Schedule(run_every_mins=5)
+    schedule = Periodic(minutes=5)
 
     def do(self):
         pass
@@ -60,7 +60,7 @@ class NoCodeCronJob(CronJobBase):
 
 class CodeNotStringCronJob(CronJobBase):
     code = 0
-    schedule = Schedule(run_every_mins=5)
+    schedule = Periodic(minutes=5)
 
     def do(self):
         pass
@@ -89,7 +89,7 @@ class NoDoCronJob(CronJobBase):
 
 class DuplicateCodeCronJob1(CronJobBase):
     code = 'duplicate code'
-    schedule = Schedule(run_every_mins=5)
+    schedule = Periodic(minutes=5)
 
     def do(self):
         pass
