@@ -23,10 +23,9 @@ def runtests():
         django.setup()
 
     test_label = 'django_cron'
-    try:
+
+    if sys.argv[0] != 'setup.py' and len(sys.args) > 1:
         test_label = '{}.tests.TestCase.{}'.format(test_label, sys.argv[1])
-    except IndexError:
-        pass
 
     failures = test_runner.run_tests([test_label])
     sys.exit(bool(failures))
