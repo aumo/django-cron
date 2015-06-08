@@ -8,10 +8,12 @@ from django.utils.six import string_types
 from django_cron import CronJobBase
 
 
-CRON_JOB_CODES = defaultdict(list)
-
-
-def check_cron(cron_class_string):
+def check_cron(cron_class_string, cron_job_codes):
+    # The cron_job_codes dict is passed around
+    # in order to register the encountered codes
+    # and check for duplicates later on, it does not
+    # feel very clean, maybe refactor OO style to avoid
+    # this.
     try:
         cron_class = import_string(cron_class_string)
     except ImportError:
@@ -51,7 +53,7 @@ def check_cron(cron_class_string):
                 id='django_cron.E004'
             ))
         else:
-            CRON_JOB_CODES[code].append(cron_class_string)
+            cron_job_codes[code].append(cron_class_string)
 
     if not hasattr(cron_class, 'schedule'):
         errors.append(Error(
@@ -89,13 +91,14 @@ def check_crons(app_configs, **kwargs):
 
     cron_classes = getattr(settings, 'CRON_CLASSES', [])
 
+    cron_job_codes = defaultdict(list)
     for cron_class_string in cron_classes:
-        cron_errors = check_cron(cron_class_string)
+        cron_errors = check_cron(cron_class_string, cron_job_codes)
         if cron_errors:
             errors.extend(cron_errors)
 
     # Check for duplicate code:
-    for code, cron_classes in CRON_JOB_CODES.items():
+    for code, cron_classes in cron_job_codes.items():
         if len(cron_classes) > 1:
             errors.append(Error(
                 'CronJob codes must be unique',
