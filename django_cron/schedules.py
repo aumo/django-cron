@@ -53,10 +53,14 @@ class Fixed(BaseSchedule):
     specific times each day.
     :param times: a list of strings representing the
     times the job must be run at, ex: `['10:00', '18:00']`
+    :param days_of_week: a list of integers (as returned by datetime.weekday(),
+    that is monday == 0 to sunday == 6) representing the days of week that the
+    job should be run. No value means everyday.
     '''
-    def __init__(self, times):
+    def __init__(self, times, days_of_week=None):
         # Parse the times.
         self.times = [datetime.strptime(t, "%H:%M").time() for t in times]
+        self.days_of_week = days_of_week
 
     def _similar_jobs_ran_today_count(self, cron_job):
         qs = CronJobLog.objects.filter(code=cron_job.code)
@@ -64,7 +68,15 @@ class Fixed(BaseSchedule):
         qs = qs.filter(start_time__gte=start_of_day)
         return qs.count()
 
+    def _right_day_of_week(self):
+        if not self.days_of_week:
+            return True
+        return timezone.now().weekday() in self.days_of_week
+
     def should_run_now(self, cron_job):
+        if not self._right_day_of_week():
+            return False
+
         for index, scheduled_time in enumerate(self.times):
             actual_time = timezone.now().time()
             if actual_time >= scheduled_time:

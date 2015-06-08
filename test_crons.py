@@ -97,3 +97,11 @@ class DuplicateCodeCronJob1(CronJobBase):
 
 class DuplicateCodeCronJob2(DuplicateCodeCronJob1):
     pass
+
+
+class DayOfWeekCronJob(CronJobBase):
+    code = 'day of week'
+    schedule = Fixed(times=['00:00'], days_of_week=[0, ])
+
+    def do(self):
+        pass

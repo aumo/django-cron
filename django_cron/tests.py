@@ -52,6 +52,7 @@ class TestCase(unittest.TestCase):
     test_no_do_cron = 'test_crons.NoDoCronJob'
     test_duplicate_code_cron_1 = 'test_crons.DuplicateCodeCronJob1'
     test_duplicate_code_cron_2 = 'test_crons.DuplicateCodeCronJob2'
+    test_day_of_week_job = 'test_crons.DayOfWeekCronJob'
 
     def setUp(self):
         CronJobLog.objects.all().delete()
@@ -227,3 +228,14 @@ class TestCase(unittest.TestCase):
         assert 'django_cron.E006' in issues_ids
         assert 'django_cron.E007' in issues_ids
         assert 'django_cron.E008' in issues_ids
+
+    def test_day_of_week_schedule(self):
+        # Freeze time on a monday.
+        with freeze_time("2015-06-01 00:00:00"):
+            call_command('runcrons', self.test_day_of_week_job)
+        self.assertEqual(CronJobLog.objects.all().count(), 1)
+
+        # And now, not a monday.
+        with freeze_time("2015-06-02 00:00:00"):
+            call_command('runcrons', self.test_day_of_week_job)
+        self.assertEqual(CronJobLog.objects.all().count(), 1)
