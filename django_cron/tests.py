@@ -111,6 +111,15 @@ class TestCase(unittest.TestCase):
             call_command('runcrons', self.run_at_times_cron)
         self.assertEqual(CronJobLog.objects.all().count(), logs_count + 2)
 
+        with freeze_time("2014-01-01 00:05:30"):
+            call_command('runcrons', self.run_at_times_cron)
+        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 2)
+
+        with freeze_time("2014-01-02 00:00:01"):
+            call_command('runcrons', self.run_at_times_cron)
+        self.assertEqual(CronJobLog.objects.all().count(), logs_count + 3)
+
+
     def test_admin(self):
         password = 'test'
         user = User.objects.create_superuser(

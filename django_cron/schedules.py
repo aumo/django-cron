@@ -52,19 +52,18 @@ class RunAtTimes(BaseSchedule):
         # Parse the times.
         self.times = [datetime.strptime(t, "%H:%M").time() for t in times]
 
-    def should_run_now(self, cron_job):
-        for scheduled_time in self.times:
-            now = timezone.now()
-            actual_time = now.time()
-            if actual_time >= scheduled_time:
-                similar_crons_that_ran_today = CronJobLog.objects.filter(
-                    code=cron_job.code,
-                    ran_at_time=scheduled_time,
-                    is_success=True
-                ).filter(end_time__gte=datetime.combine(now.date(), time.min))
+    def _similar_jobs_ran_today_count(self, cron_job):
+        qs = CronJobLog.objects.filter(code=cron_job.code)
+        start_of_day = datetime.combine(timezone.now().date(), time.min)
+        qs = qs.filter(start_time__gte=start_of_day)
+        return qs.count()
 
-                if not similar_crons_that_ran_today.exists():
-                    cron_job.cron_log.ran_at_time = scheduled_time
+    def should_run_now(self, cron_job):
+        for index, scheduled_time in enumerate(self.times):
+            actual_time = timezone.now().time()
+            if actual_time >= scheduled_time:
+                # Have the previous scheduled times been run?
+                if self._similar_jobs_ran_today_count(cron_job) == index:
                     return True
 
 
