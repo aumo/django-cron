@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.mail import mail_admins
 from django.utils.module_loading import import_string
-from django_cron import CronJobBase, RunEveryMinutes
+from django_cron import CronJobBase, Periodic
 from django_cron.models import CronJobLog
 from django_cron.settings import setting
 
@@ -15,7 +15,7 @@ class FailedRunsNotificationCronJob(CronJobBase):
     """
     RUN_EVERY_MINS = 30
 
-    schedule = RunEveryMinutes(minutes=RUN_EVERY_MINS)
+    schedule = Periodic(minutes=RUN_EVERY_MINS)
     code = 'django_cron.FailedRunsNotificationCronJob'
 
     def do(self):

@@ -9,28 +9,34 @@ from django_cron.models import CronJobLog
 class BaseSchedule(object):
     '''
     Base class for Schedules.
-    Does nothing at the moment, keep it in case
-    it needs to in the future.
+    Subclasses must implement the should_run_now method,
+    taking as first argument a CronJob instance and which
+    returns a boolean representing of that CronJob should
+    be runned.
     '''
+
+    # Does nothing at the moment, keep it in case
+    # it needs to in the future.
     pass
 
 
-class RunEveryMinutes(BaseSchedule):
+class Periodic(BaseSchedule):
     '''
     Schedule class that allows a job to be run every X minutes.
-    :param minutes: the interval in minutes between each run.
-    :param retry_after_failure_mins: the interval before retrying a failed run.
+    :param interval: the interval in minutes between each run.
+    :param retry_delay_minutes: the interval before retrying a failed run.
     '''
-    def __init__(self, minutes, retry_after_failure_mins=None):
+    def __init__(self, minutes, retry_delay_minutes=None):
         self.minutes = minutes
-        self.retry_after_failure_mins = retry_after_failure_mins
+        self.retry_delay_minutes = retry_delay_minutes
 
     def should_run_now(self, cron_job):
         # We check last job - success or not
         if cron_job.last_job \
            and not cron_job.last_job.is_success \
-           and self.retry_after_failure_mins:
-            next_retry_time = cron_job.last_job.start_time + timedelta(minutes=self.retry_after_failure_mins)
+           and self.retry_delay_minutes:
+            next_retry_time = cron_job.last_job.start_time \
+                + timedelta(minutes=self.retry_delay_minutes)
             return timezone.now() > next_retry_time
 
         if cron_job.last_successful_job:
@@ -41,7 +47,7 @@ class RunEveryMinutes(BaseSchedule):
             return True
 
 
-class RunAtTimes(BaseSchedule):
+class Fixed(BaseSchedule):
     '''
     Schedule class that allows running a job at
     specific times each day.
@@ -73,10 +79,11 @@ class Schedule(object):
     Uses the right Schedule class depending
     on the parameters it was passed.
     '''
-    def __init__(self, run_every_mins=None, run_at_times=None, retry_after_failure_mins=None):
+    def __init__(self, run_every_mins=None, run_at_times=None,
+                 retry_after_failure_mins=None):
         warnings.warn(
             'Using the Schedule class is deprecated, use '
-            'The RunAtTimes or RunEveryMinutes classes instead',
+            'The Fixed or Periodic classes instead',
             PendingDeprecationWarning
         )
         self.run_every_mins = run_every_mins
@@ -85,11 +92,11 @@ class Schedule(object):
 
     def should_run_now(self, cron_job):
         if self.run_every_mins:
-            return RunEveryMinutes(
+            return Periodic(
                 minutes=self.run_every_mins,
-                retry_after_failure_mins=self.retry_after_failure_mins
+                retry_delay_minutes=self.retry_after_failure_mins
             ).should_run_now(cron_job)
         if self.run_at_times:
-            return RunAtTimes(
+            return Fixed(
                 times=self.run_at_times
             ).should_run_now(cron_job)
