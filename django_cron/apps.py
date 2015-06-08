@@ -8,4 +8,7 @@ class AppConfig(apps.AppConfig):
     name = 'django_cron'
 
     def ready(self):
-        register(check_crons)
+        # register in Django 1.7 works as a decorator only.
+        # When support for Django 1.7 is not needed anymore,
+        # use register(check_crons). COMPAT_1.7
+        register()(check_crons)
