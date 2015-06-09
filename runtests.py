@@ -22,9 +22,9 @@ def runtests():
     if hasattr(django, 'setup'):
         django.setup()
 
-    test_label = 'django_cron'
+    test_label = 'django_cron.tests'
     if sys.argv[0] != 'setup.py' and len(sys.argv) > 1:
-        test_label = '{}.tests.TestCase.{}'.format(test_label, sys.argv[1])
+        test_label = '{}.TestCase.{}'.format(test_label, sys.argv[1])
 
     failures = test_runner.run_tests([test_label])
     sys.exit(bool(failures))

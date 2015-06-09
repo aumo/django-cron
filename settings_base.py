@@ -15,11 +15,11 @@ SECRET_KEY = "wknfgl34qtnjo&Yk3jqfjtn2k3jtnk4wtnk"
 
 
 CRON_CLASSES = [
-    'test_crons.TestSucessCronJob',
-    'test_crons.TestErrorCronJob',
-    'test_crons.Test5minsCronJob',
-    'test_crons.TestRunAtTimesCronJob',
-    'test_crons.Wait3secCronJob',
+    'django_cron.tests.cron.TestSucessCronJob',
+    'django_cron.tests.cron.TestErrorCronJob',
+    'django_cron.tests.cron.Test5minsCronJob',
+    'django_cron.tests.cron.TestRunAtTimesCronJob',
+    'django_cron.tests.cron.Wait3secCronJob',
     'django_cron.cron.FailedRunsNotificationCronJob'
 ]
 

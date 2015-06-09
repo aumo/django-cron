@@ -37,22 +37,22 @@ class OutBuffer(object):
 
 class TestCase(unittest.TestCase):
 
-    success_cron = 'test_crons.TestSucessCronJob'
-    error_cron = 'test_crons.TestErrorCronJob'
-    five_mins_cron = 'test_crons.Test5minsCronJob'
-    run_at_times_cron = 'test_crons.TestRunAtTimesCronJob'
-    wait_3sec_cron = 'test_crons.Wait3secCronJob'
+    success_cron = 'django_cron.tests.cron.TestSucessCronJob'
+    error_cron = 'django_cron.tests.cron.TestErrorCronJob'
+    five_mins_cron = 'django_cron.tests.cron.Test5minsCronJob'
+    run_at_times_cron = 'django_cron.tests.cron.TestRunAtTimesCronJob'
+    wait_3sec_cron = 'django_cron.tests.cron.Wait3secCronJob'
     does_not_exist_cron = 'ThisCronObviouslyDoesntExist'
     test_failed_runs_notification_cron = 'django_cron.cron.FailedRunsNotificationCronJob'
-    test_does_not_subclass_cron = 'test_crons.DoesNotSubclassCronJobBase'
-    test_no_code_cron = 'test_crons.NoCodeCronJob'
-    test_code_no_string_cron = 'test_crons.CodeNotStringCronJob'
-    test_no_schedule_cron = 'test_crons.NoScheduleCronJob'
-    test_invalid_schedule_cron = 'test_crons.InvalidScheduleCronJob'
-    test_no_do_cron = 'test_crons.NoDoCronJob'
-    test_duplicate_code_cron_1 = 'test_crons.DuplicateCodeCronJob1'
-    test_duplicate_code_cron_2 = 'test_crons.DuplicateCodeCronJob2'
-    test_day_of_week_job = 'test_crons.DayOfWeekCronJob'
+    test_does_not_subclass_cron = 'django_cron.tests.cron.DoesNotSubclassCronJobBase'
+    test_no_code_cron = 'django_cron.tests.cron.NoCodeCronJob'
+    test_code_no_string_cron = 'django_cron.tests.cron.CodeNotStringCronJob'
+    test_no_schedule_cron = 'django_cron.tests.cron.NoScheduleCronJob'
+    test_invalid_schedule_cron = 'django_cron.tests.cron.InvalidScheduleCronJob'
+    test_no_do_cron = 'django_cron.tests.cron.NoDoCronJob'
+    test_duplicate_code_cron_1 = 'django_cron.tests.cron.DuplicateCodeCronJob1'
+    test_duplicate_code_cron_2 = 'django_cron.tests.cron.DuplicateCodeCronJob2'
+    test_day_of_week_job = 'django_cron.tests.cron.DayOfWeekCronJob'
 
     def setUp(self):
         CronJobLog.objects.all().delete()
