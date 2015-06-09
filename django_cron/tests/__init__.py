@@ -16,6 +16,7 @@ from freezegun import freeze_time
 
 from django_cron.helpers import humanize_duration
 from django_cron.models import CronJobLog
+from django_cron.settings import setting
 
 
 class OutBuffer(object):
@@ -241,3 +242,11 @@ class TestCase(unittest.TestCase):
         with freeze_time("2015-06-02 00:00:00"):
             call_command('runcrons', self.test_day_of_week_job)
         self.assertEqual(CronJobLog.objects.all().count(), 1)
+
+    @override_settings(
+        CRON_CACHE='cron_cache',
+        FAILED_RUNS_CRONJOB_EMAIL_PREFIX='email_prefix'
+    )
+    def test_setting(self):
+        self.assertEqual(setting('CACHE'), 'cron_cache')
+        self.assertEqual(setting('EMAIL_PREFIX'), 'email_prefix')
