@@ -96,7 +96,7 @@ class Schedule(object):
         warnings.warn(
             'Using the Schedule class is deprecated, use '
             'The Fixed or Periodic classes instead',
-            PendingDeprecationWarning
+            DeprecationWarning
         )
         self.run_every_mins = run_every_mins
         self.run_at_times = run_at_times

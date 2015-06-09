@@ -29,7 +29,7 @@ def setting(name):
         warnings.warn(
             'FAILED_RUNS_CRONJOB_EMAIL_PREFIX setting was '
             'renamed into DJANGO_CRON_EMAIL_PREFIX',
-            PendingDeprecationWarning
+            DeprecationWarning
         )
         return settings.FAILED_RUNS_CRONJOB_EMAIL_PREFIX
 

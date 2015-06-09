@@ -46,7 +46,7 @@ class CronJobBase(object):
         warnings.warn(
             'CronJobBase.get_prev_success_cron() will soon be '
             'removed, use CronJobBase.last_successful_job instead.',
-            PendingDeprecationWarning
+            DeprecationWarning
         )
         return self.last_successful_job
 
