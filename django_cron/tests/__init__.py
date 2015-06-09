@@ -40,7 +40,9 @@ class TestCase(unittest.TestCase):
     success_cron = 'django_cron.tests.cron.TestSucessCronJob'
     error_cron = 'django_cron.tests.cron.TestErrorCronJob'
     five_mins_cron = 'django_cron.tests.cron.Test5minsCronJob'
+    legacy_five_mins_cron = 'django_cron.tests.cron.LegacyTest5minsCronJob'
     run_at_times_cron = 'django_cron.tests.cron.TestRunAtTimesCronJob'
+    legacy_run_at_times_cron = 'django_cron.tests.cron.LegacyTestRunAtTimesCronJob'
     wait_3sec_cron = 'django_cron.tests.cron.Wait3secCronJob'
     does_not_exist_cron = 'ThisCronObviouslyDoesntExist'
     test_failed_runs_notification_cron = 'django_cron.cron.FailedRunsNotificationCronJob'
@@ -78,22 +80,28 @@ class TestCase(unittest.TestCase):
         call_command('runcrons', self.success_cron, force=True)
         self.assertEqual(CronJobLog.objects.all().count(), 1)
 
-    def test_runs_every_mins(self):
+    def _test_runs_every_mins(self, cron_class):
         with freeze_time("2014-01-01 00:00:00"):
-            call_command('runcrons', self.five_mins_cron)
+            call_command('runcrons', cron_class)
         self.assertEqual(CronJobLog.objects.all().count(), 1)
 
         with freeze_time("2014-01-01 00:04:59"):
-            call_command('runcrons', self.five_mins_cron)
+            call_command('runcrons', cron_class)
         self.assertEqual(CronJobLog.objects.all().count(), 1)
 
         with freeze_time("2014-01-01 00:05:01"):
-            call_command('runcrons', self.five_mins_cron)
+            call_command('runcrons', cron_class)
         self.assertEqual(CronJobLog.objects.all().count(), 2)
 
-    def test_runs_at_time(self):
+    def test_runs_every_mins(self):
+        self._test_runs_every_mins(self.five_mins_cron)
+
+    def test_legacy_runs_every_mins(self):
+        self._test_runs_every_mins(self.legacy_five_mins_cron)
+
+    def _test_runs_at_time(self, cron_class):
         with freeze_time("2014-01-01 00:00:01"):
-            call_command('runcrons', self.run_at_times_cron)
+            call_command('runcrons', cron_class)
         self.assertEqual(CronJobLog.objects.all().count(), 1)
 
         with freeze_time("2014-01-01 00:04:50"):
@@ -111,6 +119,12 @@ class TestCase(unittest.TestCase):
         with freeze_time("2014-01-02 00:00:01"):
             call_command('runcrons', self.run_at_times_cron)
         self.assertEqual(CronJobLog.objects.all().count(), 3)
+
+    def test_runs_at_time(self):
+        self._test_runs_at_time(self.run_at_times_cron)
+
+    def test_legacy_runs_at_time(self):
+        self._test_runs_at_time(self.legacy_run_at_times_cron)
 
     def test_admin(self):
         password = 'test'

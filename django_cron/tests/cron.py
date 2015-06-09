@@ -27,9 +27,25 @@ class Test5minsCronJob(CronJobBase):
         pass
 
 
+class LegacyTest5minsCronJob(CronJobBase):
+    code = 'legacy_test_run_every_mins'
+    schedule = Schedule(run_every_mins=5)
+
+    def do(self):
+        pass
+
+
 class TestRunAtTimesCronJob(CronJobBase):
     code = 'test_run_at_times'
     schedule = Fixed(times=['0:00', '0:05'])
+
+    def do(self):
+        pass
+
+
+class LegacyTestRunAtTimesCronJob(CronJobBase):
+    code = 'test_run_at_times'
+    schedule = Schedule(run_at_times=['0:00', '0:05'])
 
     def do(self):
         pass
