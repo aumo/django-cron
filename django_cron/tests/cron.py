@@ -11,6 +11,10 @@ class TestSucessCronJob(CronJobBase):
         pass
 
 
+class TestSuccessParallelCronJob(TestSucessCronJob):
+    ALLOW_PARALLEL_RUNS = True
+
+
 class TestErrorCronJob(CronJobBase):
     code = 'test_error_cron_job'
     schedule = Periodic(minutes=0)
@@ -126,3 +130,4 @@ class DayOfWeekCronJob(CronJobBase):
 
     def do(self):
         pass
+

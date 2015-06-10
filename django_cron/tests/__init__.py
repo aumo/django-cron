@@ -1,7 +1,7 @@
-import os
 import threading
 from time import sleep
 from datetime import timedelta
+from multiprocessing.pool import ThreadPool
 
 from django import db
 from django.apps import apps
@@ -16,10 +16,14 @@ from django.contrib.auth.models import User
 
 from freezegun import freeze_time
 
+from django_cron.backends.lock.base import DjangoCronJobLock
+from django_cron.backends.lock.cache import CacheLock
+from django_cron.backends.lock.file import FileLock
 from django_cron.helpers import humanize_duration
 from django_cron.models import CronJobLog
 from django_cron.settings import setting
-from django_cron.tests.cron import TestRetry5minsCronJob
+from django_cron.tests.cron import (TestRetry5minsCronJob, TestSucessCronJob,
+                                    TestSuccessParallelCronJob)
 
 
 class OutBuffer(object):
@@ -269,3 +273,31 @@ class TestCase(unittest.TestCase):
             call_command('runcrons', self.retry_five_mins_cron)
 
         self.assertEqual(CronJobLog.objects.filter(is_success=True).count(), 1)
+
+    def _try_locking_in_other_thread(self, lock_class, job_class=None, should_lock=False):
+
+        def try_locking(lock_class, job_class):
+            try:
+                with lock_class(job_class, silent=False):
+                    return True
+            except DjangoCronJobLock.LockFailedException:
+                return False
+
+        if not job_class:
+            job_class = TestSucessCronJob
+
+        pool = ThreadPool(processes=1)
+        res = pool.apply_async(try_locking, (lock_class, job_class))
+        assert res.get() == should_lock, '{} did not lock'.format(lock_class.__name__)
+
+    def test_cache_lock(self):
+        with CacheLock(TestSucessCronJob, silent=False):
+            self._try_locking_in_other_thread(CacheLock, TestSucessCronJob)
+
+    def test_file_lock(self):
+        with FileLock(TestSucessCronJob, silent=True):
+            self._try_locking_in_other_thread(FileLock)
+
+    def test_parrallel_job(self):
+        with CacheLock(TestSuccessParallelCronJob, silent=True):
+            self._try_locking_in_other_thread(CacheLock, TestSuccessParallelCronJob, should_lock=True)
