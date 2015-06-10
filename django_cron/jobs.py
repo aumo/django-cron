@@ -30,6 +30,10 @@ class CronJobBase(object):
       Eg. 'general.stats' etc.
     + schedule - a subclass of django_cron.schedules.BaseSchedule
       that defines when to run the job.
+    Optional attributes:
+    * ALLOW_PARALLEL_RUN - wether two jobs may be run in parallel.
+    * MIN_NUM_FAILURE - the number of consecutive failed jobs before
+      an alert is sent to the admins.
 
     Following methods:
     + do - This is the actual business logic to be run at the given schedule.
