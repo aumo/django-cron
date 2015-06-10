@@ -3,7 +3,7 @@ from time import sleep
 from django_cron import CronJobBase, Fixed, Periodic, Schedule
 
 
-class TestSucessCronJob(CronJobBase):
+class TestSuccessCronJob(CronJobBase):
     code = 'test_success_cron_job'
     schedule = Periodic(minutes=0)
 
@@ -11,7 +11,7 @@ class TestSucessCronJob(CronJobBase):
         pass
 
 
-class TestSuccessParallelCronJob(TestSucessCronJob):
+class TestSuccessParallelCronJob(TestSuccessCronJob):
     ALLOW_PARALLEL_RUNS = True
 
 

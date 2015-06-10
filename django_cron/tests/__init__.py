@@ -22,7 +22,7 @@ from django_cron.backends.lock.file import FileLock
 from django_cron.helpers import humanize_duration
 from django_cron.models import CronJobLog
 from django_cron.settings import setting
-from django_cron.tests.cron import (TestRetry5minsCronJob, TestSucessCronJob,
+from django_cron.tests.cron import (TestRetry5minsCronJob, TestSuccessCronJob,
                                     TestSuccessParallelCronJob)
 
 
@@ -45,7 +45,7 @@ class OutBuffer(object):
 
 class TestCase(unittest.TestCase):
 
-    success_cron = 'django_cron.tests.cron.TestSucessCronJob'
+    success_cron = 'django_cron.tests.cron.TestSuccessCronJob'
     error_cron = 'django_cron.tests.cron.TestErrorCronJob'
     five_mins_cron = 'django_cron.tests.cron.Test5minsCronJob'
     retry_five_mins_cron = 'django_cron.tests.cron.TestRetry5minsCronJob'
@@ -284,18 +284,18 @@ class TestCase(unittest.TestCase):
                 return False
 
         if not job_class:
-            job_class = TestSucessCronJob
+            job_class = TestSuccessCronJob
 
         pool = ThreadPool(processes=1)
         res = pool.apply_async(try_locking, (lock_class, job_class))
         assert res.get() == should_lock, '{} did not lock'.format(lock_class.__name__)
 
     def test_cache_lock(self):
-        with CacheLock(TestSucessCronJob, silent=False):
-            self._try_locking_in_other_thread(CacheLock, TestSucessCronJob)
+        with CacheLock(TestSuccessCronJob, silent=False):
+            self._try_locking_in_other_thread(CacheLock, TestSuccessCronJob)
 
     def test_file_lock(self):
-        with FileLock(TestSucessCronJob, silent=True):
+        with FileLock(TestSuccessCronJob, silent=True):
             self._try_locking_in_other_thread(FileLock)
 
     def test_parrallel_job(self):
