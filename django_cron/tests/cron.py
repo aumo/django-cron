@@ -24,6 +24,9 @@ class TestErrorCronJob(CronJobBase):
     code = 'test_error_cron_job'
     schedule = Periodic(minutes=0)
 
+    def do(self):
+        raise Exception()
+
 
 class Test5minsCronJob(DoNothingJob):
     code = 'test_run_every_mins'
