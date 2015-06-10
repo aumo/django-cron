@@ -93,6 +93,7 @@ class DuplicateCodeCronJob1(DoNothingJob):
     code = 'duplicate code'
     schedule = Periodic(minutes=5)
 
+
 class DuplicateCodeCronJob2(DuplicateCodeCronJob1):
     pass
 
