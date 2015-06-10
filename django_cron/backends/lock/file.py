@@ -2,6 +2,7 @@ from django_cron.backends.lock.base import DjangoCronJobLock
 from django_cron.settings import setting
 
 from django.core.files import locks
+from django.utils.six import text_type
 import os
 import sys
 import errno
@@ -34,7 +35,7 @@ class FileLock(DjangoCronJobLock):
                     st1 = os.fstat(f.fileno())
                     st2 = os.stat(lock_name)
                     if st1.st_ino == st2.st_ino:
-                        f.write(str(os.getpid()))
+                        f.write(text_type(os.getpid()).encode('ascii'))
                         self.lockfile = f
                         return True
                 # else:
