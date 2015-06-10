@@ -3,7 +3,12 @@ from time import sleep
 from django_cron import CronJobBase, Fixed, Periodic, Schedule
 
 
-class TestSuccessCronJob(CronJobBase):
+class DoNothingJob(CronJobBase):
+    def do(self):
+        pass
+
+
+class TestSuccessCronJob(DoNothingJob):
     code = 'test_success_cron_job'
     schedule = Periodic(minutes=0)
 
@@ -19,16 +24,10 @@ class TestErrorCronJob(CronJobBase):
     code = 'test_error_cron_job'
     schedule = Periodic(minutes=0)
 
-    def do(self):
-        raise Exception()
 
-
-class Test5minsCronJob(CronJobBase):
+class Test5minsCronJob(DoNothingJob):
     code = 'test_run_every_mins'
     schedule = Periodic(minutes=5)
-
-    def do(self):
-        pass
 
 
 class TestRetry5minsCronJob(Test5minsCronJob):
@@ -36,28 +35,19 @@ class TestRetry5minsCronJob(Test5minsCronJob):
     schedule = Periodic(minutes=5, retry_delay_minutes=2)
 
 
-class LegacyTest5minsCronJob(CronJobBase):
+class LegacyTest5minsCronJob(DoNothingJob):
     code = 'legacy_test_run_every_mins'
     schedule = Schedule(run_every_mins=5)
 
-    def do(self):
-        pass
 
-
-class TestRunAtTimesCronJob(CronJobBase):
+class TestRunAtTimesCronJob(DoNothingJob):
     code = 'test_run_at_times'
     schedule = Fixed(times=['0:00', '0:05'])
 
-    def do(self):
-        pass
 
-
-class LegacyTestRunAtTimesCronJob(CronJobBase):
+class LegacyTestRunAtTimesCronJob(DoNothingJob):
     code = 'test_run_at_times'
     schedule = Schedule(run_at_times=['0:00', '0:05'])
-
-    def do(self):
-        pass
 
 
 class WaitCronJob(CronJobBase):
@@ -76,35 +66,22 @@ class DoesNotSubclassCronJobBase(object):
         pass
 
 
-class NoCodeCronJob(CronJobBase):
+class NoCodeCronJob(DoNothingJob):
     schedule = Periodic(minutes=5)
 
-    def do(self):
-        pass
 
-
-class CodeNotStringCronJob(CronJobBase):
+class CodeNotStringCronJob(DoNothingJob):
     code = 0
     schedule = Periodic(minutes=5)
 
-    def do(self):
-        pass
 
-
-class NoScheduleCronJob(CronJobBase):
+class NoScheduleCronJob(DoNothingJob):
     code = 'test_no_schedule'
 
-    def do(self):
-        pass
 
-
-class InvalidScheduleCronJob(CronJobBase):
+class InvalidScheduleCronJob(DoNothingJob):
     code = 'invalid_schedule'
-
     schedule = 'invalid'
-
-    def do(self):
-        pass
 
 
 class NoDoCronJob(CronJobBase):
@@ -112,22 +89,14 @@ class NoDoCronJob(CronJobBase):
     schedule = Schedule(run_every_mins=5)
 
 
-class DuplicateCodeCronJob1(CronJobBase):
+class DuplicateCodeCronJob1(DoNothingJob):
     code = 'duplicate code'
     schedule = Periodic(minutes=5)
-
-    def do(self):
-        pass
-
 
 class DuplicateCodeCronJob2(DuplicateCodeCronJob1):
     pass
 
 
-class DayOfWeekCronJob(CronJobBase):
+class DayOfWeekCronJob(DoNothingJob):
     code = 'day of week'
     schedule = Fixed(times=['00:00'], days_of_week=[0, ])
-
-    def do(self):
-        pass
-
