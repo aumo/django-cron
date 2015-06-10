@@ -52,7 +52,7 @@ class TestCase(unittest.TestCase):
     legacy_five_mins_cron = 'django_cron.tests.cron.LegacyTest5minsCronJob'
     run_at_times_cron = 'django_cron.tests.cron.TestRunAtTimesCronJob'
     legacy_run_at_times_cron = 'django_cron.tests.cron.LegacyTestRunAtTimesCronJob'
-    wait_3sec_cron = 'django_cron.tests.cron.Wait3secCronJob'
+    wait_cron = 'django_cron.tests.cron.WaitCronJob'
     does_not_exist_cron = 'ThisCronObviouslyDoesntExist'
     test_failed_runs_notification_cron = 'django_cron.cron.FailedRunsNotificationCronJob'
     test_does_not_subclass_cron = 'django_cron.tests.cron.DoesNotSubclassCronJobBase'
@@ -156,7 +156,7 @@ class TestCase(unittest.TestCase):
         self.assertIn('Cron job logs', str(response.content))
 
     def run_cronjob_in_thread(self, logs_count):
-        call_command('runcrons', self.wait_3sec_cron)
+        call_command('runcrons', self.wait_cron)
         self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
         db.close_old_connections()
 
@@ -169,7 +169,7 @@ class TestCase(unittest.TestCase):
         t.start()
         # this shouldn't get running
         sleep(0.1)  # to avoid race condition
-        call_command('runcrons', self.wait_3sec_cron)
+        call_command('runcrons', self.wait_cron)
         t.join(10)
         self.assertEqual(CronJobLog.objects.all().count(), 1)
 
@@ -188,7 +188,7 @@ class TestCase(unittest.TestCase):
     #     t.daemon = True
     #     t.start()
     #     sleep(1)  # Avoid race condition
-    #     call_command('runcrons', self.wait_3sec_cron)
+    #     call_command('runcrons', self.wait_cron)
     #     t.join(10)
     #     self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
 

@@ -19,7 +19,7 @@ CRON_CLASSES = [
     'django_cron.tests.cron.TestErrorCronJob',
     'django_cron.tests.cron.Test5minsCronJob',
     'django_cron.tests.cron.TestRunAtTimesCronJob',
-    'django_cron.tests.cron.Wait3secCronJob',
+    'django_cron.tests.cron.WaitCronJob',
     'django_cron.cron.FailedRunsNotificationCronJob'
 ]
 

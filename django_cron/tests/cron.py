@@ -60,12 +60,12 @@ class LegacyTestRunAtTimesCronJob(CronJobBase):
         pass
 
 
-class Wait3secCronJob(CronJobBase):
-    code = 'test_wait_3_seconds'
+class WaitCronJob(CronJobBase):
+    code = 'test_wait_seconds'
     schedule = Periodic(minutes=5)
 
     def do(self):
-        sleep(3)
+        sleep(.4)
 
 
 class DoesNotSubclassCronJobBase(object):
