@@ -27,6 +27,11 @@ class Test5minsCronJob(CronJobBase):
         pass
 
 
+class TestRetry5minsCronJob(Test5minsCronJob):
+    code = 'test_retry_run_every_mins'
+    schedule = Periodic(minutes=5, retry_delay_minutes=2)
+
+
 class LegacyTest5minsCronJob(CronJobBase):
     code = 'legacy_test_run_every_mins'
     schedule = Schedule(run_every_mins=5)

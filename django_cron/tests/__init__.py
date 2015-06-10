@@ -1,9 +1,11 @@
+import os
 import threading
 from time import sleep
 from datetime import timedelta
 
 from django import db
 from django.apps import apps
+from django.utils import timezone
 from django.utils import unittest
 from django.core import checks
 from django.core.management import call_command
@@ -17,6 +19,7 @@ from freezegun import freeze_time
 from django_cron.helpers import humanize_duration
 from django_cron.models import CronJobLog
 from django_cron.settings import setting
+from django_cron.tests.cron import TestRetry5minsCronJob
 
 
 class OutBuffer(object):
@@ -41,6 +44,7 @@ class TestCase(unittest.TestCase):
     success_cron = 'django_cron.tests.cron.TestSucessCronJob'
     error_cron = 'django_cron.tests.cron.TestErrorCronJob'
     five_mins_cron = 'django_cron.tests.cron.Test5minsCronJob'
+    retry_five_mins_cron = 'django_cron.tests.cron.TestRetry5minsCronJob'
     legacy_five_mins_cron = 'django_cron.tests.cron.LegacyTest5minsCronJob'
     run_at_times_cron = 'django_cron.tests.cron.TestRunAtTimesCronJob'
     legacy_run_at_times_cron = 'django_cron.tests.cron.LegacyTestRunAtTimesCronJob'
@@ -179,8 +183,7 @@ class TestCase(unittest.TestCase):
     #     t = threading.Thread(target=self.run_cronjob_in_thread, args=(logs_count,))
     #     t.daemon = True
     #     t.start()
-    #     # this shouldn't get running
-    #     sleep(1)  # to avoid race condition
+    #     sleep(1)  # Avoid race condition
     #     call_command('runcrons', self.wait_3sec_cron)
     #     t.join(10)
     #     self.assertEqual(CronJobLog.objects.all().count(), logs_count + 1)
@@ -250,3 +253,19 @@ class TestCase(unittest.TestCase):
     def test_setting(self):
         self.assertEqual(setting('CACHE'), 'cron_cache')
         self.assertEqual(setting('EMAIL_PREFIX'), 'email_prefix')
+
+    def test_job_retry(self):
+        # Create a failed job
+        with freeze_time('2015-06-02 00:00:00'):
+            start_time = timezone.now()
+            CronJobLog.objects.create(
+                code=TestRetry5minsCronJob.code,
+                is_success=False,
+                start_time=start_time,
+                end_time=start_time + timedelta(seconds=1)
+            )
+
+        with freeze_time('2015-06-02 00:02:30'):
+            call_command('runcrons', self.retry_five_mins_cron)
+
+        self.assertEqual(CronJobLog.objects.filter(is_success=True).count(), 1)
